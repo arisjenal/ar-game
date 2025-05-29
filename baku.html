@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baku</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>AR GAME</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="baku.html">Baku</a>
+      <a href="catur.html">catur</a>
+      <a href="kecepatan.html">Kecepatan Ngetik</a>
+    </nav>
+  </header>
+  <section id="about">
+    <h2>Tentang Baku</h2>
+    <p><strong>Baku</strong> adalah sebuah website yang dirancang untuk menguji dan meningkatkan seberapa baku bahasa Indonesia yang kamu gunakan. Melalui sebuah game seru berisi 15 pertanyaan, kamu dapat mengasah kemampuanmu membedakan kata dan kalimat yang sesuai dengan bahasa baku yang benar dan tepat. Apakah kamu yakin bahasamu sudah baku? Yuk buktikan dan asah kemampuanmu di sini!</p>
+  </section>
+  <section id="settings">
+    <h2>Tingkat Kesulitan</h2>
+    <p>Pilih tingkat kesulitan untuk menentukan jenis pertanyaan yang akan kamu hadapi dalam game.</p>
+    <div id="difficulty">
+      <input type="radio" id="easy" name="difficulty" value="easy" checked />
+      <label for="easy">Mudah</label>
+
+      <input type="radio" id="medium" name="difficulty" value="medium" />
+      <label for="medium">Sedang</label>
+
+      <input type="radio" id="hard" name="difficulty" value="hard" />
+      <label for="hard">Sulit</label>
+    </div>
+  </section>
+  <section id="game-section">
+    <h2>Mainkan Game</h2>
+    <div id="game">
+      <div id="question-number"></div>
+      <div id="question-text"></div>
+      <div id="options"></div>
+      <div id="controls">
+        <button id="start-btn">Mulai Game</button>
+        <button id="next-btn" disabled>Soal Berikutnya</button>
+        <button id="restart-btn" style="display:none;">Main Lagi</button>
+      </div>
+      <div id="score-display"></div>
+    </div>
+  </section>
+<footer>© 2024 Baku - Aris Jenal</footer>
+<script src="script1.js"></script>
+</body>
+</html>

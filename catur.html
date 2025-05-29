@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess Game</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #333;
+      margin: 20px 0;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      border: 2px solid #333;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .square {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 36px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .white {
+      background-color: #fff;
+    }
+
+    .black {
+      background-color: #769656;
+    }
+
+    .selected {
+      background-color: #ffeb3b !important;
+    }
+
+    .highlight-move {
+      background-color: #b3e5fc !important;
+    }
+
+    .highlight-capture {
+      background-color: #ef5350 !important;
+    }
+
+    #info {
+      margin: 20px 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    #controls-catur {
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 0 10px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #45a049;
+    }
+
+    @media (max-width: 600px) {
+      #board {
+        grid-template-columns: repeat(8, 45px);
+        grid-template-rows: repeat(8, 45px);
+      }
+      .square {
+        width: 45px;
+        height: 45px;
+        font-size: 28px;
+      }
+    }
+  </style> -->
+</head>
+<body>
+  <header>
+  <h1>AR GAME</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="baku.html">Baku</a>
+    <a href="catur.html">catur</a>
+    <a href="kecepatan.html">Kecepatan Ngetik</a>
+  </nav>
+  </header>
+  <section id="about">
+    <h2>Tentang Catur</h2>
+    <p><strong>Catur</strong> adalah sebuah website yang dirancang untuk game yang meningkatkan seberapa pintar kamu main catur. Yang dimana catur ini dibutuhkan dua pemain. Untuk membuktikan kemampuanmu bermain catur, yuk di mulai!</p>
+  </section>
+  <section>
+    <!-- <h1>Chess Game</h1> -->
+  <div id="board"></div>
+  <div id="info">Tekan "Mulai Game" untuk memulai</div>
+  <div id="controls-catur">
+    <button class="catur" id="start-btn">Mulai Game</button>
+    <button class="catur" id="restart-btn" disabled>Restart Game</button>
+  </div>
+  </section>
+  
+
+  <script>
+    (() => {
+      const pieces = {
+        white: { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘', P: '♙' },
+        black: { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' }
+      };
+
+      const boardEl = document.getElementById('board');
+      const infoEl = document.getElementById('info');
+      const startBtn = document.getElementById('start-btn');
+      const restartBtn = document.getElementById('restart-btn');
+
+      let board = [];
+      let currentPlayer = 'white';
+      let selectedSquare = null;
+      let gameActive = false;
+
+      const knightMoves = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+      const kingMoves = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+      function initBoard() {
+        board = Array(8).fill().map(() => Array(8).fill(null));
+        board[0] = [
+          {type:'R', color:'black'}, {type:'N', color:'black'}, {type:'B', color:'black'},
+          {type:'Q', color:'black'}, {type:'K', color:'black'}, {type:'B', color:'black'},
+          {type:'N', color:'black'}, {type:'R', color:'black'}
+        ];
+        board[1] = Array(8).fill({type:'P', color:'black'});
+        board[6] = Array(8).fill({type:'P', color:'white'});
+        board[7] = [
+          {type:'R', color:'white'}, {type:'N', color:'white'}, {type:'B', color:'white'},
+          {type:'Q', color:'white'}, {type:'K', color:'white'}, {type:'B', color:'white'},
+          {type:'N', color:'white'}, {type:'R', color:'white'}
+        ];
+      }
+
+      function renderBoard() {
+        boardEl.innerHTML = '';
+        for(let row = 0; row < 8; row++) {
+          for(let col = 0; col < 8; col++) {
+            const square = document.createElement('div');
+            square.classList.add('square', (row + col) % 2 === 0 ? 'white' : 'black');
+            square.dataset.row = row;
+            square.dataset.col = col;
+            const piece = board[row][col];
+            if(piece) {
+              square.textContent = pieces[piece.color][piece.type];
+            }
+            square.addEventListener('click', () => handleSquareClick(row, col));
+            boardEl.appendChild(square);
+          }
+        }
+      }
+
+      function getPiece(row, col) {
+        if(row < 0 || row >= 8 || col < 0 || col >= 8) return null;
+        return board[row][col];
+      }
+
+      function generateMoves(row, col) {
+        const piece = getPiece(row, col);
+        if(!piece || piece.color !== currentPlayer) return [];
+
+        const moves = [];
+        const enemyColor = currentPlayer === 'white' ? 'black' : 'white';
+
+        switch(piece.type) {
+          case 'P':
+            const dir = piece.color === 'white' ? -1 : 1;
+            const startRow = piece.color === 'white' ? 6 : 1;
+            if(!getPiece(row + dir, col)) {
+              moves.push([row + dir, col]);
+              if(row === startRow && !getPiece(row + 2 * dir, col)) {
+                moves.push([row + 2 * dir, col]);
+              }
+            }
+            for(let dc of [-1, 1]) {
+              const r = row + dir;
+              const c = col + dc;
+              if(r >= 0 && r < 8 && c >= 0 && c < 8 && getPiece(r, c)?.color === enemyColor) {
+                moves.push([r, c]);
+              }
+            }
+            break;
+          case 'R':
+            for(let [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+              let r = row + dr, c = col + dc;
+              while(r >= 0 && r < 8 && c >= 0 && c < 8) {
+                const target = getPiece(r, c);
+                if(!target) moves.push([r, c]);
+                else {
+                  if(target.color !== currentPlayer) moves.push([r, c]);
+                  break;
+                }
+                r += dr;
+                c += dc;
+              }
+            }
+            break;
+          case 'N':
+            for(let [dr, dc] of knightMoves) {
+              const r = row + dr, c = col + dc;
+              if(r >= 0 && r < 8 && c >= 0 && c < 8) {
+                const target = getPiece(r, c);
+                if(!target || target.color !== currentPlayer) moves.push([r, c]);
+              }
+            }
+            break;
+          case 'B':
+            for(let [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
+              let r = row + dr, c = col + dc;
+              while(r >= 0 && r < 8 && c >= 0 && c < 8) {
+                const target = getPiece(r, c);
+                if(!target) moves.push([r, c]);
+                else {
+                  if(target.color !== currentPlayer) moves.push([r, c]);
+                  break;
+                }
+                r += dr;
+                c += dc;
+              }
+            }
+            break;
+          case 'Q':
+            for(let [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]) {
+              let r = row + dr, c = col + dc;
+              while(r >= 0 && r < 8 && c >= 0 && c < 8) {
+                const target = getPiece(r, c);
+                if(!target) moves.push([r, c]);
+                else {
+                  if(target.color !== currentPlayer) moves.push([r, c]);
+                  break;
+                }
+                r += dr;
+                c += dc;
+              }
+            }
+            break;
+          case 'K':
+            for(let [dr, dc] of kingMoves) {
+              const r = row + dr, c = col + dc;
+              if(r >= 0 && r < 8 && c >= 0 && c < 8) {
+                const target = getPiece(r, c);
+                if(!target || target.color !== currentPlayer) moves.push([r, c]);
+              }
+            }
+            break;
+        }
+        return moves;
+      }
+
+      function isLegalMove(fromRow, fromCol, toRow, toCol) {
+        const moves = generateMoves(fromRow, fromCol);
+        return moves.some(([r, c]) => r === toRow && c === toCol);
+      }
+
+      function handleSquareClick(row, col) {
+        if(!gameActive) return;
+
+        const piece = getPiece(row, col);
+        if(!selectedSquare) {
+          if(piece && piece.color === currentPlayer) {
+            selectedSquare = {row, col};
+            highlightMoves(row, col);
+            infoEl.textContent = `Player ${currentPlayer}'s turn: Select destination.`;
+          }
+        } else {
+          if(row === selectedSquare.row && col === selectedSquare.col) {
+            selectedSquare = null;
+            clearHighlights();
+            infoEl.textContent = `Player ${currentPlayer}'s turn: Select a piece.`;
+            return;
+          }
+          if(piece && piece.color === currentPlayer) {
+            selectedSquare = {row, col};
+            clearHighlights();
+            highlightMoves(row, col);
+            infoEl.textContent = `Player ${currentPlayer}'s turn: Select destination.`;
+            return;
+          }
+          if(isLegalMove(selectedSquare.row, selectedSquare.col, row, col)) {
+            makeMove(selectedSquare.row, selectedSquare.col, row, col);
+            selectedSquare = null;
+            clearHighlights();
+          } else {
+            infoEl.textContent = 'Invalid move, try again.';
+          }
+        }
+      }
+
+      function highlightMoves(row, col) {
+        clearHighlights();
+        const square = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+        square.classList.add('selected');
+        const moves = generateMoves(row, col);
+        moves.forEach(([r, c]) => {
+          const targetSquare = document.querySelector(`.square[data-row="${r}"][data-col="${c}"]`);
+          if(getPiece(r, c)) {
+            targetSquare.classList.add('highlight-capture');
+          } else {
+            targetSquare.classList.add('highlight-move');
+          }
+        });
+      }
+
+      function clearHighlights() {
+        document.querySelectorAll('.square').forEach(square => {
+          square.classList.remove('selected', 'highlight-move', 'highlight-capture');
+        });
+      }
+
+      function makeMove(fromRow, fromCol, toRow, toCol) {
+        const piece = getPiece(fromRow, fromCol);
+        board[toRow][toCol] = piece;
+        board[fromRow][fromCol] = null;
+
+        if(piece.type === 'P' && ((piece.color === 'white' && toRow === 0) || (piece.color === 'black' && toRow === 7))) {
+          board[toRow][toCol] = {type: 'Q', color: piece.color};
+          infoEl.textContent = `Pawn promoted to Queen!`;
+        }
+
+        renderBoard();
+        currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+        infoEl.textContent = `Player ${currentPlayer}'s turn: Select a piece.`;
+      }
+
+      function startGame() {
+        initBoard();
+        renderBoard();
+        gameActive = true;
+        currentPlayer = 'white';
+        infoEl.textContent = `Player white's turn: Select a piece.`;
+        startBtn.disabled = true;
+        restartBtn.disabled = false;
+      }
+
+      function restartGame() {
+        if(confirm('Restart the game?')) {
+          startGame();
+        }
+      }
+
+      startBtn.addEventListener('click', startGame);
+      restartBtn.addEventListener('click', restartGame);
+
+      initBoard();
+      renderBoard();
+    })();
+  </script>
+<footer>© 2024 Baku - Aris Jenal</footer>
+</body>
+</html>
